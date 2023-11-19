@@ -41,8 +41,7 @@ def Add_MachineMatertial():
     return cur.execute("INSERT INTO MachineMaterial(ID, MachineID, MaterialID)VALUES(?, ?, ?)", MachineMaterial)
 def IsValid(newval):
     return re.match('^\0{0,1}\d{0,999999}$', newval) is not None
-def show_data(s):
-    label["text"] = s
+   
 root = Tk()
 root.title("Интерфейс БД")
 root.geometry("600x500")
@@ -53,7 +52,7 @@ tab_control = ttk.Notebook(root)
 tab1 = ttk.Frame(tab_control)
 tab2 = ttk.Frame(tab_control)
 tab_control.add(tab1, text='Ввод данных')  
-tab_control.add(tab2, text='Вторая') 
+tab_control.add(tab2, text='Просмотр данных') 
 
 label = ttk.Label(tab1, text = "Таблица Станки")
 label.pack(anchor=N, padx=6, pady=6)
@@ -105,12 +104,45 @@ entry7.pack(anchor = N, padx = 8, pady = 9)
 btn = ttk.Button(tab1, text = "Добавить", command = Add_MachineMatertial)
 btn.pack(anchor = N, padx = 6, pady = 6)
 
-cur.execute("Select * FROM Machine;")
-l = cur.fetchall()
-label = ttk.Label(tab2, text = l)
-label.pack(anchor=N, padx=6, pady=6)
+cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+            Machine.MachineID = MachineMaterial.MachineID)
+            JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""") 
+data = cur.fetchall()
+cur.execute("SELECT Machine FROM Machine;")
+mch = cur.fetchall()
+cur.execute("Select Material FROM Material;")
+mtl = cur.fetchall()
+combobox = ttk.Combobox(tab2, values = mch)
+combobox.pack(anchor = N, padx = 6, pady = 6)
+combobox2 = ttk.Combobox(tab2, values = mtl)
+combobox2.pack(anchor = N, padx = 6, pady = 6)
 
-tab_control.pack(expand=1, fill='both')
+def sort():
+    selection = combobox.get()
+    selection2 = combobox2.get()
+    cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+            Machine.MachineID = MachineMaterial.MachineID)
+            JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
+            Where Machine = selection, Material = selection2);""")
+    [tree.delete(i) for i in tree.get_children()]
+    [tree.insert("", END, values = row) for row in cur.fetchall()]
+btn = ttk.Button(tab2, text = "Применить")
+btn.pack(anchor = N, padx = 6, pady = 6)  
+
+columns = ("Станок", "Материал")
+tree = ttk.Treeview(tab2, columns = columns, show = "headings")
+tree.pack(fill = BOTH, expand = 1)
+tree.heading("Станок", text = "Станок")
+tree.heading("Материал", text = "Материал")
+
+tree.column("#1", anchor = N)
+tree.column("#2", anchor = N)
+
+for stanok in data:
+    tree.insert("", END, values = stanok)
+
+
+tab_control.pack(expand = 1, fill = 'both')
 
 root.mainloop()
 
