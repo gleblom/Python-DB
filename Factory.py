@@ -142,8 +142,20 @@ def sort():
                 
     [tree.delete(i) for i in tree.get_children()]
     [tree.insert("", END, values = row) for row in cur.fetchall()]
-btn = ttk.Button(tab2, text = "Применить")
-btn.pack(anchor = N, padx = 6, pady = 6)  
+def sort_off():
+            cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+            Machine.MachineID = MachineMaterial.MachineID)
+            JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")
+            [tree.delete(i) for i in tree.get_children()]
+            [tree.insert("", END, values = row) for row in cur.fetchall()]
+            combobox.set("") 
+            combobox2.set("") 
+            
+btn = ttk.Button(tab2, text = "Применить", command = sort)
+btn.pack(anchor = N, padx = 6, pady = 6)
+
+btn = ttk.Button(tab2, text = "Снять фильтр", command = sort_off) 
+btn.pack(anchor = N, padx = 6 pady = 6) 
 
 columns = ("Станок", "Материал")
 tree = ttk.Treeview(tab2, columns = columns, show = "headings")
