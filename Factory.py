@@ -120,10 +120,26 @@ combobox2.pack(anchor = N, padx = 6, pady = 6)
 def sort():
     selection = combobox.get()
     selection2 = combobox2.get()
-    cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
-            Machine.MachineID = MachineMaterial.MachineID)
-            JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
-            Where Machine = selection, Material = selection2);""")
+    if selection != "" and selection2 != "":
+                cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
+                Where Machine = selection, Material = selection2);""")
+    if selection != "" and selection2 == "":
+                cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
+                Where Machine = selection);""")
+    if selection == "" and selection2 != "":
+                cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
+                Where Material = selection2);""")
+    if selection == "" and selection2 == "":
+                cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""") 
+                
     [tree.delete(i) for i in tree.get_children()]
     [tree.insert("", END, values = row) for row in cur.fetchall()]
 btn = ttk.Button(tab2, text = "Применить")
