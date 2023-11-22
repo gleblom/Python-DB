@@ -155,7 +155,7 @@ btn = ttk.Button(tab2, text = "Применить", command = sort)
 btn.pack(anchor = N, padx = 6, pady = 6)
 
 btn = ttk.Button(tab2, text = "Снять фильтр", command = sort_off) 
-btn.pack(anchor = N, padx = 6 pady = 6) 
+btn.pack(anchor = N, padx = 6, pady = 6) 
 
 columns = ("Станок", "Материал")
 tree = ttk.Treeview(tab2, columns = columns, show = "headings")
