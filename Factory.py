@@ -124,17 +124,17 @@ def sort():
                 cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
                 Machine.MachineID = MachineMaterial.MachineID)
                 JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
-                Where Machine = selection, Material = selection2);""")
+                Where Machine =:selection, Material =:selection2""", {"selection":selection, "selection2":selection2})
     if selection != "" and selection2 == "":
                 cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
                 Machine.MachineID = MachineMaterial.MachineID)
                 JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
-                Where Machine = selection);""")
+                Where Machine =:selection""", {"selection":selection})
     if selection == "" and selection2 != "":
                 cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
                 Machine.MachineID = MachineMaterial.MachineID)
                 JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID
-                Where Material = selection2);""")
+                Where Material =:selection2""", {"selection2":selection2})
     if selection == "" and selection2 == "":
                 cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
                 Machine.MachineID = MachineMaterial.MachineID)
