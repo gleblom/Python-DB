@@ -6,24 +6,24 @@ import re
 conn = sqlite3.connect('Database.db')
 cur = conn.cursor()
 
-#cur.execute("""CREATE TABLE IF NOT EXISTS Machine(
-#        MachineID int PRIMARY KEY,
-#        Machine text);""")
-#cur.execute("""CREATE TABLE IF NOT EXISTS MachineMaterial(
-#        ID int PRIMARY KEY,
-#        MachineID int,
-#        MaterialID int);""")
-#cur.execute("""CREATE TABLE IF NOT EXISTS Material(
-#        MaterialID int PRIMARY KEY,
-#        Material text);""")
-#cur.execute("""INSERT INTO Machine(MachineID, Machine) VALUES
-#        (1, "S1AR2"), (2, "D2D10A"), (3, "FR10A4");""")
-#cur.execute("""INSERT INTO Material(MaterialID, Material) VALUES
-#         (1, "Steel"), (2, "Aluminum"), (3, "Bronze"), (4, "Tin"),
-#        (5, "Copper"), (6, "Lead");""")
-#cur.execute("""INSERT INTO MachineMaterial(ID, MachineID, MaterialID) VALUES
-#        (1, 1, 1), (2, 1, 2), (3, 2, 3), (4, 2, 4),
-#        (5, 3, 5), (6, 3, 6), (7, 2, 5);""")
+cur.execute("""CREATE TABLE IF NOT EXISTS Machine(
+        MachineID int PRIMARY KEY,
+        Machine text);""")
+cur.execute("""CREATE TABLE IF NOT EXISTS MachineMaterial(
+        ID int PRIMARY KEY,
+        MachineID int,
+        MaterialID int);""")
+cur.execute("""CREATE TABLE IF NOT EXISTS Material(
+        MaterialID int PRIMARY KEY,
+        Material text);""")
+cur.execute("""INSERT INTO Machine(MachineID, Machine) VALUES
+        (1, "S1AR2"), (2, "D2D10A"), (3, "FR10A4");""")
+cur.execute("""INSERT INTO Material(MaterialID, Material) VALUES
+        (1, "Steel"), (2, "Aluminum"), (3, "Bronze"), (4, "Tin"),
+        (5, "Copper"), (6, "Lead");""")
+cur.execute("""INSERT INTO MachineMaterial(ID, MachineID, MaterialID) VALUES
+        (1, 1, 1), (2, 1, 2), (3, 2, 3), (4, 2, 4),
+        (5, 3, 5), (6, 3, 6), (7, 2, 5);""")
 
 def Datadd():
     cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
@@ -39,22 +39,45 @@ def Add_Machine():
     value = M[len(M)-1][0]+1
     value2 = entry.get()
     Machine = (value, value2)
-    return cur.execute("INSERT INTO Machine(MachineID, Machine)VALUES(?, ?)", Machine)
+    cur.execute("INSERT INTO Machine(MachineID, Machine)VALUES(?, ?)", Machine)
+    cur.execute("SELECT Machine FROM Machine")
+    res = cur.fetchall()
+    combobox['values'] = res
+    combobox3['values'] = res
+    
 
 def Add_Matertial():
     cur.execute("""SELECT * FROM Material""")
     M = cur.fetchall()
     value = M[len(M)-1][0]+1
     value2 = entry2.get()
-    Material = (value3, value4)
-    return cur.execute("INSERT INTO Material(MaterialID, Material)VALUES(?, ?)", Material)
+    Material = (value, value2)
+    cur.execute("INSERT INTO Material(MaterialID, Material)VALUES(?, ?)", Material)
+    cur.execute("SELECT Material FROM Material")
+    res = cur.fetchall()
+    combobox2['values'] = res
+    combobox4['values'] = res
 
 def Add_MachineMatertial():
-    value5 = entry5.get()
-    value6 = entry6.get()
-    value7 = entry7.get()
-    MachineMaterial = (value3, value4)
-    return cur.execute("INSERT INTO MachineMaterial(ID, MachineID, MaterialID)VALUES(?, ?, ?)", MachineMaterial)
+    selection = combobox.get()
+    selection2 = combobox2.get()
+    cur.execute("""SELECT MachineID FROM Machine WHERE Machine =:cbx""", {"cbx": selection})
+    MCH = cur.fetchall()
+    cur.execute("""SELECT MaterialID FROM Material WHERE Material =:cbx""", {"cbx": selection2})
+    MTL = cur.fetchall()
+    cur.execute("""SELECT * FROM MachineMaterial""")
+    MCL = cur.fetchall()
+    value = MCL[len(MCL)-1][0]+1
+    value2 = str(MCH)
+    value3 = str(MTL)
+    print(MCH[0])
+    MachineMaterial = (value, value2, value3)
+    cur.execute("INSERT INTO MachineMaterial(ID, MachineID, MaterialID)VALUES(?, ?, ?)", MachineMaterial)
+    cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")        
+    [tree.delete(i) for i in tree.get_children()]
+    [tree.insert("", END, values = row) for row in cur.fetchall()]
 
 def IsValid(newval):
     return re.match('^\0{0,1}\d{0,999999}$', newval) is not None
@@ -92,8 +115,8 @@ def sort_off():
                 JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")        
     [tree.delete(i) for i in tree.get_children()]
     [tree.insert("", END, values = row) for row in cur.fetchall()]
-    combobox.set("")
-    combobox2.set("")
+    combobox3.set("")
+    combobox4.set("")
     
 def data_box():
     cur.execute("SELECT Machine FROM Machine;")
@@ -101,7 +124,6 @@ def data_box():
     cur.execute("Select Material FROM Material;")
     mtl = cur.fetchall()
     return mch, mtl
-
 
 root = Tk()
 root.title("Интерфейс БД")
@@ -151,10 +173,6 @@ tree.pack(fill = BOTH, expand = 1)
 tree.heading("Станок", text = "Станок")
 tree.heading("Материал", text = "Материал")
 
-Datadd()
-
-tab_control.pack(expand = 1, fill = 'both')
-
 combobox3 = ttk.Combobox(tab2, values = data_box()[0])
 combobox3.pack(anchor = N, padx = 6, pady = 6)
 combobox4 = ttk.Combobox(tab2, values = data_box()[1])
@@ -165,8 +183,10 @@ btn.pack(anchor = N, padx = 6, pady = 6)
 btn = ttk.Button(tab2, text = "Снять фильтр", command = sort_off)
 btn.pack(anchor = N, padx = 6, pady = 6)
 
+tab_control.pack(expand = 1, fill = 'both')
+
+Datadd()
+
 root.mainloop()
 
-
-    
     
