@@ -2,6 +2,7 @@ import sqlite3
 from tkinter import *  
 from tkinter import ttk
 import re
+from tkinter.messagebox import showerror, showwarning, showinfo
 
 conn = sqlite3.connect('Database.db')
 cur = conn.cursor()
@@ -34,6 +35,19 @@ def Datadd():
         tree.insert("", END, values = stanok)
 
 def Add_Machine():
+    val = entry.get()
+    mass = [(val)]
+    cur.execute("""SELECT Machine FROM Machine""")
+    tblv = cur.fetchall()
+    nw = []
+    for i in range(len(tblv)):
+        for j in range(len(tblv[0])):
+            nw.append(tblv[i][j])
+    for i in nw:
+        if all(elem in i for elem in mass):
+            entry.delete(0, END)
+            showerror(title="Ошибка", message="Ошибка: введённое значение уже присутствует в таблице!")
+            return False
     cur.execute("""SELECT * FROM Machine""")
     M = cur.fetchall()
     value = M[len(M)-1][0]+1
@@ -44,9 +58,23 @@ def Add_Machine():
     res = cur.fetchall()
     combobox['values'] = res
     combobox3['values'] = res
+    entry.delete(0, END)
     
 
 def Add_Matertial():
+    val = entry.get()
+    mass = [(val)]
+    cur.execute("""SELECT Material FROM Material""")
+    tblv = cur.fetchall()
+    nw = []
+    for i in range(len(tblv)):
+        for j in range(len(tblv[0])):
+            nw.append(tblv[i][j])
+    for i in nw:
+        if all(elem in i for elem in mass):
+            entry2.delete(0, END)
+            showerror(title="Ошибка", message="Ошибка: введённое значение уже присутствует в таблице!")
+            return False
     cur.execute("""SELECT * FROM Material""")
     M = cur.fetchall()
     value = M[len(M)-1][0]+1
@@ -57,30 +85,41 @@ def Add_Matertial():
     res = cur.fetchall()
     combobox2['values'] = res
     combobox4['values'] = res
+    entry2.delete(0, END)
 
 def Add_MachineMatertial():
     selection = combobox.get()
     selection2 = combobox2.get()
-    cur.execute("""SELECT MachineID FROM Machine WHERE Machine =:cbx""", {"cbx": selection})
+    new_values = [selection, selection2]
+    cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+            Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")
+    tbl_values = cur.fetchall()
+    for i in tbl_values:
+        if all(elem in i for elem in new_values):
+            combobox.set("")
+            combobox2.set("")
+            showerror(title="Ошибка", message="Ошибка: введённые значения уже присутствует в таблице!")
+            return False
+    cur.execute("""SELECT * FROM Machine WHERE Machine =:cbx""", {"cbx": selection})
     MCH = cur.fetchall()
-    cur.execute("""SELECT MaterialID FROM Material WHERE Material =:cbx""", {"cbx": selection2})
+    cur.execute("""SELECT * FROM Material WHERE Material =:cbx""", {"cbx": selection2})
     MTL = cur.fetchall()
     cur.execute("""SELECT * FROM MachineMaterial""")
     MCL = cur.fetchall()
     value = MCL[len(MCL)-1][0]+1
-    value2 = str(MCH)
-    value3 = str(MTL)
-    print(MCH[0])
+    value2 = MCH[0][0]
+    value3 = MTL[0][0]
     MachineMaterial = (value, value2, value3)
     cur.execute("INSERT INTO MachineMaterial(ID, MachineID, MaterialID)VALUES(?, ?, ?)", MachineMaterial)
     cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
                 Machine.MachineID = MachineMaterial.MachineID)
-                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")        
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")
     [tree.delete(i) for i in tree.get_children()]
     [tree.insert("", END, values = row) for row in cur.fetchall()]
+    combobox.set("")
+    combobox2.set("")
 
-def IsValid(newval):
-    return re.match('^\0{0,1}\d{0,999999}$', newval) is not None
 def sort():
     selection = combobox3.get()
     selection2 = combobox4.get()
@@ -125,22 +164,72 @@ def data_box():
     mtl = cur.fetchall()
     return mch, mtl
 
+def delete_data():
+    selection = combobox5.get()
+    selection2 = combobox6.get()
+    if selection != "" and selection2 == "":
+        cur.execute("""DELETE FROM Machine WHERE Machine =:selection""", {"selection": selection})
+        combobox5.set("")
+        cur.execute("SELECT Machine FROM Machine")
+        res = cur.fetchall()
+        combobox['values'] = res
+        combobox3['values'] = res
+        combobox5['values'] = res
+        cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")
+        [tree.delete(i) for i in tree.get_children()]
+        [tree.insert("", END, values = row) for row in cur.fetchall()]
+    if selection == "" and selection2 != "":
+        cur.execute("""DELETE FROM Material WHERE Material =:selection2""", {"selection2": selection2})
+        combobox6.set("")
+        cur.execute("SELECT Material FROM Material")
+        res = cur.fetchall()
+        combobox2['values'] = res
+        combobox4['values'] = res
+        combobox6['values'] = res
+        cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")
+        [tree.delete(i) for i in tree.get_children()]
+        [tree.insert("", END, values = row) for row in cur.fetchall()]
+    if selection != "" and selection2 != "":
+        cur.execute("""DELETE FROM Machine WHERE Machine =:selection""", {"selection": selection})
+        combobox5.set("")
+        cur.execute("SELECT Machine FROM Machine")
+        res = cur.fetchall()
+        combobox['values'] = res
+        combobox3['values'] = res
+        combobox5['values'] = res
+        cur.execute("""DELETE FROM Material WHERE Material =:selection2""", {"selection2": selection2})
+        combobox6.set("")
+        cur.execute("SELECT Material FROM Material")
+        res = cur.fetchall()
+        combobox2['values'] = res
+        combobox4['values'] = res
+        combobox6['values'] = res
+        cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")
+        [tree.delete(i) for i in tree.get_children()]
+        [tree.insert("", END, values = row) for row in cur.fetchall()]
+        
 root = Tk()
 root.title("Интерфейс БД")
 root.geometry("600x500")
 
-check = (root.register(IsValid), "%P")
-
 tab_control = ttk.Notebook(root)  
 tab1 = ttk.Frame(tab_control)
 tab2 = ttk.Frame(tab_control)
+tab3 = ttk.Frame(tab_control)
 tab_control.add(tab1, text='Ввод данных')  
-tab_control.add(tab2, text='Просмотр данных') 
+tab_control.add(tab2, text='Просмотр данных')
+tab_control.add(tab3, text='Удаление данных')
 
 label = ttk.Label(tab1, text = "Таблица Станки")
 label.pack(anchor=N, padx=6, pady=6)
 label = ttk.Label(tab1, text = "Название Станка")
-label.place(x = 140, y = 80)
+label.place(x = 135, y = 40)
 
 entry = ttk.Entry(tab1)
 entry.pack(anchor = N, padx = 8, pady = 9)
@@ -151,7 +240,7 @@ btn.pack(anchor = N, padx = 6, pady = 6)
 label = ttk.Label(tab1, text = "Таблица Материалы")
 label.pack(anchor = N, padx = 6, pady = 6)
 label = ttk.Label(tab1, text = "Название Материала")
-label.place(x = 115, y = 225)
+label.place(x = 110, y = 145)
 
 entry2 = ttk.Entry(tab1)
 entry2.pack(anchor = N, padx = 8, pady = 9)
@@ -159,13 +248,20 @@ entry2.pack(anchor = N, padx = 8, pady = 9)
 btn = ttk.Button(tab1, text = "Добавить", command = Add_Matertial)
 btn.pack(anchor = N, padx = 6, pady = 6)
 
+label = ttk.Label(tab1, text = "Главная таблица")
+label.pack(anchor = N, padx = 6, pady = 6)
+label = ttk.Label(tab1, text = "Станок")
+label.place(x = 180, y = 250)
+label = ttk.Label(tab1, text = "Материал")
+label.place(x = 165, y = 285)
+
 combobox = ttk.Combobox(tab1, values = data_box()[0])
 combobox.pack(anchor = N, padx = 6, pady = 6)
 combobox2 = ttk.Combobox(tab1, values = data_box()[1])
 combobox2.pack(anchor = N, padx = 6, pady = 6)
 
-btn = ttk.Button(tab1, text = "Добавить", command = Add_MachineMatertial)
-btn.pack(anchor = N, padx = 6, pady = 6)
+btn_di = ttk.Button(tab1, text = "Добавить", command = Add_MachineMatertial)
+btn_di.pack(anchor = N, padx = 6, pady = 6)
 
 columns = ("Станок", "Материал")
 tree = ttk.Treeview(tab2, columns = columns, show = "headings")
@@ -185,8 +281,19 @@ btn.pack(anchor = N, padx = 6, pady = 6)
 
 tab_control.pack(expand = 1, fill = 'both')
 
+combobox6 = ttk.Combobox(tab3, values = data_box()[1])
+combobox6.pack(anchor = S, padx = 6, pady = 6)
+
+btn = ttk.Button(tab3, text = "Удалить", command = delete_data)
+btn.pack(anchor = N, padx = 6, pady = 6)
+
+combobox5 = ttk.Combobox(tab3, values = data_box()[0])
+combobox5.pack(anchor = N, padx = 6, pady = 6)
+
+btn = ttk.Button(tab3, text = "Удалить", command = delete_data)
+btn.pack(anchor = S, padx = 6, pady = 6)
+
 Datadd()
 
 root.mainloop()
 
-    
