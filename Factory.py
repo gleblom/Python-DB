@@ -58,11 +58,12 @@ def Add_Machine():
     res = cur.fetchall()
     combobox['values'] = res
     combobox3['values'] = res
+    combobox5['values'] = res
     entry.delete(0, END)
     
 
 def Add_Matertial():
-    val = entry.get()
+    val = entry2.get()
     mass = [(val)]
     cur.execute("""SELECT Material FROM Material""")
     tblv = cur.fetchall()
@@ -85,6 +86,7 @@ def Add_Matertial():
     res = cur.fetchall()
     combobox2['values'] = res
     combobox4['values'] = res
+    combobox6['values'] = res
     entry2.delete(0, END)
 
 def Add_MachineMatertial():
@@ -213,6 +215,7 @@ def delete_data():
                 JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")
         [tree.delete(i) for i in tree.get_children()]
         [tree.insert("", END, values = row) for row in cur.fetchall()]
+
         
 root = Tk()
 root.title("Интерфейс БД")
@@ -281,11 +284,17 @@ btn.pack(anchor = N, padx = 6, pady = 6)
 
 tab_control.pack(expand = 1, fill = 'both')
 
+label = ttk.Label(tab3, text = "Материал")
+label.pack(anchor = N, padx = 6, pady = 6)
+
 combobox6 = ttk.Combobox(tab3, values = data_box()[1])
 combobox6.pack(anchor = S, padx = 6, pady = 6)
 
 btn = ttk.Button(tab3, text = "Удалить", command = delete_data)
 btn.pack(anchor = N, padx = 6, pady = 6)
+
+label = ttk.Label(tab3, text = "Станок")
+label.pack(anchor = N, padx = 6, pady = 6)
 
 combobox5 = ttk.Combobox(tab3, values = data_box()[0])
 combobox5.pack(anchor = N, padx = 6, pady = 6)
@@ -296,4 +305,3 @@ btn.pack(anchor = S, padx = 6, pady = 6)
 Datadd()
 
 root.mainloop()
-
