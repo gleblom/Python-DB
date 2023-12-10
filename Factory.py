@@ -216,6 +216,22 @@ def delete_data():
         [tree.delete(i) for i in tree.get_children()]
         [tree.insert("", END, values = row) for row in cur.fetchall()]
 
+def search():
+    selection = entry3.get()
+    if selection == "":
+        cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID);""")        
+        [tree.delete(i) for i in tree.get_children()]
+        [tree.insert("", END, values = row) for row in cur.fetchall()]
+    else:
+        cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
+                Machine.MachineID = MachineMaterial.MachineID)
+                JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID)
+                WHERE Machine LIKE """ + "'" + selection + "'" + """ OR
+                Material LIKE """ + "'" + selection + "'" + """;""")
+        [tree.delete(i) for i in tree.get_children()]
+        [tree.insert("", END, values = row) for row in cur.fetchall()]
         
 root = Tk()
 root.title("Интерфейс БД")
@@ -301,6 +317,12 @@ combobox5.pack(anchor = N, padx = 6, pady = 6)
 
 btn = ttk.Button(tab3, text = "Удалить", command = delete_data)
 btn.pack(anchor = S, padx = 6, pady = 6)
+
+entry3 = ttk.Entry(tab2)
+entry3.place(x = 50, y = 340)
+
+btn = ttk.Button(tab2, text = "Поиск", command = search)
+btn.place(x = 75, y = 370)
 
 Datadd()
 
