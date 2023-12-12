@@ -228,8 +228,8 @@ def search():
         cur.execute("""SELECT Machine, Material FROM ((Machine JOIN MachineMaterial ON 
                 Machine.MachineID = MachineMaterial.MachineID)
                 JOIN Material ON Material.MaterialID = MachineMaterial.MaterialID)
-                WHERE Machine LIKE """ + "'" + selection + "'" + """ OR
-                Material LIKE """ + "'" + selection + "'" + """;""")
+                WHERE Machine LIKE """ + "'%" + selection + "%'" + """ OR
+                Material LIKE """ + "'%" + selection + "%'" + """;""")
         [tree.delete(i) for i in tree.get_children()]
         [tree.insert("", END, values = row) for row in cur.fetchall()]
         
