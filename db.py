@@ -7,7 +7,7 @@ import requests
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://5432:pass@localhost/postgres'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -27,9 +27,6 @@ class MachineMaterial(db.Model):
     ID = db.Column(db.Integer, primary_key = True)
     MachineID = db.Column(db.Integer, db.ForeignKey('machine.MachineID'))
     MaterialID = db.Column(db.Integer, db.ForeignKey('material.MaterialID'))
-
-    
-engine = create_engine('sqlite:///Database.db')
 
 @app.route('/')
 @app.route('/Machine', methods = ['GET', 'POST'])
