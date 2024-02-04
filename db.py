@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-import sqlite3
+import psycopg2
 from sqlalchemy import create_engine
 import requests
 
